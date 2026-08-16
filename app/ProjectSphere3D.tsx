@@ -34,6 +34,13 @@ const PANEL_LIFT = .22;
 const ENTRY_DURATION = 1.65;
 const ENTRY_STAGGER = .028;
 const ENTRY_END = ENTRY_DURATION + (PANEL_COUNT - 1) * ENTRY_STAGGER;
+const SPHERE_TILT_X = -.04;
+const PROJECT_SLOTS = [21, 19, 17, 15, 13, 22, 20, 18, 16, 14, 12];
+const PROJECT_SLOT_SET = new Set(PROJECT_SLOTS);
+const PANEL_SLOT_ORDER = [
+  ...PROJECT_SLOTS,
+  ...Array.from({ length: PANEL_COUNT }, (_, index) => index).filter(index => !PROJECT_SLOT_SET.has(index)),
+];
 
 function easeOutQuart(value: number) {
   return 1 - Math.pow(1 - value, 4);
@@ -215,7 +222,7 @@ export default function ProjectSphere3D({ projects, active, selected, paused, re
     camera.position.set(0, .15, 9.1);
 
     const root = new THREE.Group();
-    root.rotation.x = -.12;
+    root.rotation.x = SPHERE_TILT_X;
     scene.add(root);
 
     scene.add(new THREE.AmbientLight(0xffffff, 1.15));
@@ -273,7 +280,7 @@ export default function ProjectSphere3D({ projects, active, selected, paused, re
         side: THREE.DoubleSide,
       });
       const mesh = new THREE.Mesh(panelGeometry, material) as PanelMesh;
-      const target = fibonacciPosition(index);
+      const target = fibonacciPosition(PANEL_SLOT_ORDER[index]);
       const raised = target.clone().setLength(SPHERE_RADIUS + PANEL_LIFT);
       const targetQuaternion = new THREE.Quaternion().setFromUnitVectors(normal, target.clone().normalize());
       const spiralAngle = index * .82;
@@ -296,7 +303,7 @@ export default function ProjectSphere3D({ projects, active, selected, paused, re
     const startTime = performance.now();
     let lastTime = startTime;
     let animationFrame = 0;
-    let targetTiltX = -.12;
+    let targetTiltX = SPHERE_TILT_X;
     let targetTiltY = 0;
     const targetScale = new THREE.Vector3(1, 1, 1);
     const launchPosition = new THREE.Vector3(.72, .08, 6.2);
@@ -318,10 +325,10 @@ export default function ProjectSphere3D({ projects, active, selected, paused, re
       const rect = renderer.domElement.getBoundingClientRect();
       pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-      targetTiltX = reducedRef.current ? -.12 : -.12 + pointer.y * .08;
+      targetTiltX = reducedRef.current ? SPHERE_TILT_X : SPHERE_TILT_X + pointer.y * .08;
       targetTiltY = reducedRef.current ? root.rotation.y : pointer.x * .16;
     };
-    const clearPointer = () => { pointer.set(4, 4); hovered = -1; host.style.cursor = "default"; targetTiltX = -.12; targetTiltY = 0; };
+    const clearPointer = () => { pointer.set(4, 4); hovered = -1; host.style.cursor = "default"; targetTiltX = SPHERE_TILT_X; targetTiltY = 0; };
     const click = () => {
       if (hovered < 0 || launch) return;
       const mesh = panels.find(item => item.userData.projectIndex === hovered);
