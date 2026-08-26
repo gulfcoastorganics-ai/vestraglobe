@@ -1,0 +1,28 @@
+name: Refresh Workers Types Lock
+on:
+  push:
+    branches: [launch/next1633-release-2026-08-26]
+    paths: [.github/workflows/refresh-workers-types-lock.yml]
+permissions:
+  contents: write
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: launch/next1633-release-2026-08-26
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+          cache: npm
+      - run: npm install --package-lock-only --ignore-scripts
+      - run: node -e "const l=require('./package-lock.json'); if(l.packages?.['node_modules/@cloudflare/workers-types']?.version!=='5.20260823.1') throw new Error('Workers types lock missing')"
+      - name: Commit lockfile
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- package-lock.json
+          git commit -m 'Resolve Cloudflare Workers type lock'
+          git push origin HEAD:launch/next1633-release-2026-08-26
