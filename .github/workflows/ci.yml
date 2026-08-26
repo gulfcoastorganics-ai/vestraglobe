@@ -20,5 +20,8 @@ jobs:
           node-version: 22.13.0
       - run: npm run install:ci
       - run: npm run lint
+      - run: npm run typecheck
       - run: npm test
       - run: npm run validate:artifact
+      - name: Production dependency audit
+        run: npm audit --omit=dev --audit-level=high
