@@ -21,7 +21,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22.13.0
-      - run: npm install --package-lock-only --ignore-scripts
+      - name: Refresh lock with Worker runtime types
+        run: npm install --package-lock-only --ignore-scripts
+      - name: Verify Worker type lock
+        run: node -e "const l=require('./package-lock.json'); if(!l.packages?.['node_modules/@cloudflare/workers-types']) throw new Error('Worker types missing from lock')"
       - name: Commit lockfile
         run: |
           git config user.name 'github-actions[bot]'
