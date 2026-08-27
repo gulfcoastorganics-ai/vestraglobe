@@ -6,5 +6,3 @@ declare namespace Cloudflare {
     DB?: D1Database;
   }
 }
-
-interface Env extends Cloudflare.Env {}
